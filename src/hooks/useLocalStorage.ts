@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react';
 import { JournalEntry, Achievement } from '../types';
 import { ACHIEVEMENTS } from '../data/constants';
+import { PARKS } from '../data/constants';
+
+const STORAGE_KEYS = [
+  'wild_ontario_journal',
+  'wild_ontario_visits',
+  'wild_ontario_stickers',
+] as const;
 
 export function useLocalStorage() {
   const [journal, setJournal] = useState<JournalEntry[]>(() => {
@@ -13,6 +20,16 @@ export function useLocalStorage() {
     return saved ? JSON.parse(saved) : [];
   });
 
+  const [stickerCollection, setStickerCollection] = useState<string[]>(() => {
+    const saved = localStorage.getItem('wild_ontario_stickers');
+    if (saved) {
+      return JSON.parse(saved);
+    }
+
+    // Backfill stickers for existing visits when this feature is first introduced.
+    return visits.filter(parkId => PARKS.some(park => park.id === parkId && park.sticker));
+  });
+
   useEffect(() => {
     localStorage.setItem('wild_ontario_journal', JSON.stringify(journal));
   }, [journal]);
@@ -20,6 +37,10 @@ export function useLocalStorage() {
   useEffect(() => {
     localStorage.setItem('wild_ontario_visits', JSON.stringify(visits));
   }, [visits]);
+
+  useEffect(() => {
+    localStorage.setItem('wild_ontario_stickers', JSON.stringify(stickerCollection));
+  }, [stickerCollection]);
 
   const addJournalEntry = (entry: Omit<JournalEntry, 'id' | 'date'>) => {
     const newEntry: JournalEntry = {
@@ -33,7 +54,19 @@ export function useLocalStorage() {
   const addVisit = (parkId: string) => {
     if (!visits.includes(parkId)) {
       setVisits(prev => [...prev, parkId]);
+
+      const park = PARKS.find(p => p.id === parkId);
+      if (park?.sticker) {
+        setStickerCollection(prev => (prev.includes(parkId) ? prev : [...prev, parkId]));
+      }
     }
+  };
+
+  const clearAllStorage = () => {
+    setJournal([]);
+    setVisits([]);
+    setStickerCollection([]);
+    STORAGE_KEYS.forEach(key => localStorage.removeItem(key));
   };
 
   const getBadges = (): Achievement[] => {
@@ -52,8 +85,10 @@ export function useLocalStorage() {
   return {
     journal,
     visits,
+    stickerCollection,
     addJournalEntry,
     addVisit,
+    clearAllStorage,
     getBadges,
   };
 }

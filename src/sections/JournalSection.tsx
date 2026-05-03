@@ -11,9 +11,17 @@ export function JournalSection({ storage }: { storage: any }) {
   const [content, setContent] = useState('');
   const [parkId, setParkId] = useState('');
   const [selectedSpecies, setSelectedSpecies] = useState<string[]>([]);
+  const [submitNotice, setSubmitNotice] = useState<string | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const selectedPark = parkId ? PARKS.find(p => p.id === parkId) : null;
+    const hadVisitBeforeSubmit = parkId ? storage.visits.includes(parkId) : false;
+
+    if (parkId) {
+      storage.addVisit(parkId);
+    }
+
     storage.addJournalEntry({
       title,
       content,
@@ -21,6 +29,19 @@ export function JournalSection({ storage }: { storage: any }) {
       speciesIds: selectedSpecies,
       rating: 5,
     });
+
+    if (selectedPark?.sticker) {
+      setSubmitNotice(
+        hadVisitBeforeSubmit
+          ? `Entry saved for ${selectedPark.name}. Sticker already in your collection.`
+          : `Entry saved for ${selectedPark.name}. Sticker added to your collection.`
+      );
+    } else if (selectedPark) {
+      setSubmitNotice(`Entry saved for ${selectedPark.name}.`);
+    } else {
+      setSubmitNotice('Entry saved.');
+    }
+
     setIsAdding(false);
     resetForm();
   };
@@ -51,6 +72,23 @@ export function JournalSection({ storage }: { storage: any }) {
           </button>
         )}
       </header>
+
+      {submitNotice && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center justify-between gap-3 bg-forest-50 border border-forest-200 text-forest-800 rounded-2xl px-4 py-3"
+        >
+          <p className="text-sm font-medium">{submitNotice}</p>
+          <button
+            type="button"
+            onClick={() => setSubmitNotice(null)}
+            className="text-xs font-bold uppercase tracking-wider text-forest-600 hover:text-forest-800"
+          >
+            Dismiss
+          </button>
+        </motion.div>
+      )}
 
       <AnimatePresence>
         {isAdding && (

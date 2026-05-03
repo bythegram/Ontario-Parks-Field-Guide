@@ -1,16 +1,31 @@
 import React from 'react';
-import { Award, Zap, Activity, CheckCircle2, TrendingUp, Trophy, Map as MapIcon, Scroll, Info } from 'lucide-react';
+import { Award, Zap, Activity, CheckCircle2, TrendingUp, Trophy, Map as MapIcon, Scroll, Info, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { ACHIEVEMENTS } from '../data/constants';
+import { ACHIEVEMENTS, PARKS } from '../data/constants';
+import { Achievement } from '../types';
 import { cn } from '../lib/utils';
 
 export function AchievementsSection({ storage }: { storage: any }) {
-  const earnedBadges = storage.getBadges();
+  const earnedBadges: Achievement[] = storage.getBadges();
+  const collectedStickers = PARKS.filter(park => storage.stickerCollection?.includes(park.id) && park.sticker);
+  const hasStoredProgress = storage.visits.length > 0 || storage.journal.length > 0 || collectedStickers.length > 0;
+
+  const handleClearStorage = () => {
+    if (!hasStoredProgress) {
+      return;
+    }
+
+    const shouldClear = window.confirm('Clear all saved visits, journal entries, stickers, and achievements progress?');
+    if (shouldClear) {
+      storage.clearAllStorage();
+    }
+  };
 
   const stats = [
     { label: 'Parks Visited', value: storage.visits.length, icon: MapIcon, color: 'text-forest-600', bg: 'bg-forest-100' },
     { label: 'Journal Logs', value: storage.journal.length, icon: Scroll, color: 'text-amber-600', bg: 'bg-amber-100' },
     { label: 'Species Spotted', value: new Set(storage.journal.flatMap((e: any) => e.speciesIds)).size, icon: Activity, color: 'text-rose-600', bg: 'bg-rose-100' },
+    { label: 'Stickers Collected', value: collectedStickers.length, icon: Award, color: 'text-sky-600', bg: 'bg-sky-100' },
   ];
 
   return (
@@ -21,14 +36,30 @@ export function AchievementsSection({ storage }: { storage: any }) {
           <p className="text-forest-600 mt-2">Track your progress and earn badges for exploring Ontario.</p>
         </div>
 
-        <div className="bg-white px-5 py-3 rounded-2xl border border-earth-200 shadow-sm">
-          <p className="text-[10px] font-bold text-forest-400 uppercase tracking-widest">Progress</p>
-          <p className="text-sm font-bold text-forest-900">{earnedBadges.length} / {ACHIEVEMENTS.length} badges earned</p>
+        <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+          <div className="bg-white px-5 py-3 rounded-2xl border border-earth-200 shadow-sm">
+            <p className="text-[10px] font-bold text-forest-400 uppercase tracking-widest">Progress</p>
+            <p className="text-sm font-bold text-forest-900">{earnedBadges.length} / {ACHIEVEMENTS.length} badges earned</p>
+          </div>
+          <button
+            type="button"
+            onClick={handleClearStorage}
+            disabled={!hasStoredProgress}
+            className={cn(
+              'inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-bold transition-colors',
+              hasStoredProgress
+                ? 'border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100'
+                : 'cursor-not-allowed border-earth-200 bg-earth-100 text-earth-400'
+            )}
+          >
+            <Trash2 size={16} />
+            Clear Saved Data
+          </button>
         </div>
       </header>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         {stats.map((stat, i) => (
           <motion.div 
             key={stat.label}
@@ -49,6 +80,42 @@ export function AchievementsSection({ storage }: { storage: any }) {
           </motion.div>
         ))}
       </div>
+
+      <section className="bg-white rounded-3xl border border-earth-200 p-6 md:p-8 shadow-sm">
+        <div className="flex items-center justify-between gap-3 mb-6">
+          <div>
+            <h3 className="text-2xl font-bold text-forest-900">Sticker Collection</h3>
+            <p className="text-sm text-forest-600 mt-1">Each logged park visit adds that park's sticker to your collection.</p>
+          </div>
+          <p className="text-xs font-bold uppercase tracking-widest text-forest-500 bg-forest-50 px-3 py-1 rounded-full border border-forest-100">
+            {collectedStickers.length} / {PARKS.filter(p => p.sticker).length}
+          </p>
+        </div>
+
+        {collectedStickers.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-earth-300 bg-earth-50/50 py-10 px-4 text-center">
+            <p className="text-forest-700 font-semibold">No stickers yet</p>
+            <p className="text-sm text-forest-500 mt-1">Log your first park visit in Explore to start collecting.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {collectedStickers.map((park, i) => (
+              <motion.div
+                key={park.id}
+                initial={{ opacity: 0, scale: 0.92 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.04 }}
+                className="group"
+              >
+                <div className="aspect-square rounded-2xl bg-earth-50 border border-earth-200 p-2 shadow-sm group-hover:shadow-md transition-all">
+                  <img src={park.sticker} alt={`${park.name} sticker`} className="w-full h-full object-contain" />
+                </div>
+                <p className="text-[11px] text-forest-600 font-semibold mt-2 text-center leading-tight line-clamp-2">{park.name}</p>
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </section>
 
       <div className="grid lg:grid-cols-2 gap-12 pt-6">
         {/* Badges Section */}
