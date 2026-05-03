@@ -41,3 +41,8 @@ An interactive field guide to Ontario's provincial parks. Explore parks on a liv
    ```
 
    The app runs at `http://localhost:3000`.
+
+## Credits
+
+- Park and species data sourced from the [Ontario Data Catalogue](https://data.ontario.ca/)
+- Plan your next trip at [Ontario Parks](https://www.ontarioparks.ca/en)

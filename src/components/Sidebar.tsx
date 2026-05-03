@@ -67,7 +67,7 @@ export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
             })}
           </nav>
 
-          <div className="mt-auto pt-6 border-t border-earth-100">
+          <div className="mt-auto pt-6 border-t border-earth-100 space-y-3">
             <div className="bg-forest-900 rounded-2xl p-4 text-white">
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-2 h-2 bg-forest-400 rounded-full animate-pulse" />
@@ -81,6 +81,29 @@ export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
                 className="text-[10px] font-bold uppercase underline text-forest-400 hover:text-white transition-colors"
               >
                 Project Repository
+              </a>
+            </div>
+
+            <div className="bg-forest-50 rounded-2xl p-4">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-forest-500 mb-2">Credits</p>
+              <p className="text-xs text-forest-700 leading-relaxed mb-1">
+                Data sourced from the{' '}
+                <a
+                  href="https://data.ontario.ca/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline text-forest-600 hover:text-forest-900 transition-colors"
+                >
+                  Ontario Data Catalogue
+                </a>.
+              </p>
+              <a
+                href="https://www.ontarioparks.ca/en"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[10px] font-bold uppercase underline text-forest-600 hover:text-forest-900 transition-colors"
+              >
+                Visit Ontario Parks &rarr;
               </a>
             </div>
           </div>
