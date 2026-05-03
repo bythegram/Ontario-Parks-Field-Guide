@@ -20,7 +20,11 @@ export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
   return (
     <>
       <button 
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
+        aria-controls="primary-sidebar-nav"
+        aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
         className="fixed top-4 left-4 z-50 md:hidden p-2 bg-white rounded-lg shadow-md border border-earth-200"
       >
         {isOpen ? <X size={20} /> : <Menu size={20} />}
@@ -41,13 +45,14 @@ export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
             </div>
           </div>
 
-          <nav className="flex-1 space-y-2">
+          <nav id="primary-sidebar-nav" className="flex-1 space-y-2">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
               
               return (
                 <button
+                  type="button"
                   key={item.id}
                   onClick={() => {
                     setActiveTab(item.id);

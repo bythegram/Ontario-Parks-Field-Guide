@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { SPECIES } from '../data/constants';
 import { Search, Filter, Info, Sparkles, Binary, X } from 'lucide-react';
 import { Species } from '../types';
@@ -9,6 +9,28 @@ export function GuideSection({ storage }: { storage: any }) {
   const [search, setSearch] = useState('');
   const [activeType, setActiveType] = useState<string | null>(null);
   const [selectedSpecies, setSelectedSpecies] = useState<Species | null>(null);
+  const closeDetailsButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    if (selectedSpecies) {
+      closeDetailsButtonRef.current?.focus();
+    }
+  }, [selectedSpecies]);
+
+  useEffect(() => {
+    if (!selectedSpecies) {
+      return;
+    }
+
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setSelectedSpecies(null);
+      }
+    };
+
+    window.addEventListener('keydown', onEscape);
+    return () => window.removeEventListener('keydown', onEscape);
+  }, [selectedSpecies]);
 
   const types = ['Plant', 'Animal', 'Bird', 'Insect'];
 
@@ -47,6 +69,7 @@ export function GuideSection({ storage }: { storage: any }) {
           
           <div className="flex flex-wrap gap-2">
             <button
+              type="button"
               onClick={() => setActiveType(null)}
               className={cn(
                 "px-3 py-1.5 rounded-full text-xs font-bold transition-all",
@@ -57,6 +80,7 @@ export function GuideSection({ storage }: { storage: any }) {
             </button>
             {types.map(type => (
               <button
+                type="button"
                 key={type}
                 onClick={() => setActiveType(type)}
                 className={cn(
@@ -73,12 +97,13 @@ export function GuideSection({ storage }: { storage: any }) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {filteredSpecies.map((species, i) => (
-          <motion.div
+          <motion.button
+            type="button"
             key={species.id}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: i * 0.05 }}
-            className="group cursor-pointer"
+            className="group text-left"
             onClick={() => setSelectedSpecies(species)}
           >
             <div className="bg-white rounded-2xl overflow-hidden border border-earth-200 shadow-sm hover:shadow-xl hover:border-forest-200 transition-all duration-500">
@@ -111,7 +136,7 @@ export function GuideSection({ storage }: { storage: any }) {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </motion.button>
         ))}
       </div>
 
@@ -125,6 +150,9 @@ export function GuideSection({ storage }: { storage: any }) {
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 50 }}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="species-details-title"
               onClick={e => e.stopPropagation()}
               className="bg-white max-w-2xl w-full rounded-3xl overflow-hidden shadow-2xl border border-earth-200"
             >
@@ -135,6 +163,9 @@ export function GuideSection({ storage }: { storage: any }) {
                 
                 <div className="md:w-1/2 p-8 flex flex-col">
                   <button 
+                    ref={closeDetailsButtonRef}
+                    type="button"
+                    aria-label="Close species details"
                     onClick={() => setSelectedSpecies(null)}
                     className="self-end p-2 hover:bg-earth-50 rounded-xl transition-colors mb-2"
                   >
@@ -143,7 +174,7 @@ export function GuideSection({ storage }: { storage: any }) {
 
                   <div className="mb-6">
                     <span className="text-[10px] font-bold text-forest-500 uppercase tracking-[0.2em]">{selectedSpecies.type}</span>
-                    <h3 className="text-3xl font-serif font-bold text-forest-900 mt-1">{selectedSpecies.name}</h3>
+                    <h3 id="species-details-title" className="text-3xl font-serif font-bold text-forest-900 mt-1">{selectedSpecies.name}</h3>
                     <p className="text-xs font-mono text-forest-500 italic mt-1">{selectedSpecies.scientificName}</p>
                   </div>
 

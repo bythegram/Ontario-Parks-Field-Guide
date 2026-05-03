@@ -134,9 +134,9 @@ export function AchievementsSection({ storage }: { storage: any }) {
                     <div>
                       <p className="font-bold text-sm">Recent Activity</p>
                       <p className="text-xs text-forest-300 mt-1">Visit 3 more Northern parks to unlock the 'Tundra Tough' badge.</p>
-                      <button className="mt-4 text-[10px] font-bold uppercase tracking-widest text-forest-200 hover:text-white transition-colors flex items-center gap-1">
+                      <span className="mt-4 text-[10px] font-bold uppercase tracking-widest text-forest-200 flex items-center gap-1">
                         View Map <CheckCircle2 size={10} />
-                      </button>
+                      </span>
                     </div>
                    </div>
                 </div>

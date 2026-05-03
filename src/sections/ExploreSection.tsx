@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { PARKS } from '../data/constants';
@@ -35,6 +35,28 @@ export function ExploreSection({ storage }: ExploreSectionProps) {
   const [isLocating, setIsLocating] = useState(false);
   const [sortBy, setSortBy] = useState<'alpha' | 'nearest'>('alpha');
   const [locationError, setLocationError] = useState<string | null>(null);
+  const closeDetailButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    if (selectedPark) {
+      closeDetailButtonRef.current?.focus();
+    }
+  }, [selectedPark]);
+
+  useEffect(() => {
+    if (!selectedPark) {
+      return;
+    }
+
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setSelectedPark(null);
+      }
+    };
+
+    window.addEventListener('keydown', onEscape);
+    return () => window.removeEventListener('keydown', onEscape);
+  }, [selectedPark]);
 
   const getErrorCode = (error: unknown): number | null => {
     if (!error || typeof error !== 'object') {
@@ -234,6 +256,7 @@ export function ExploreSection({ storage }: ExploreSectionProps) {
                     <h3 className="font-bold text-forest-900 border-b border-earth-100 pb-1 mb-2">{park.name}</h3>
                     <p className="text-xs text-forest-600 mb-2 line-clamp-2">{park.lore}</p>
                     <button 
+                      type="button"
                       onClick={() => setSelectedPark(park)}
                       className="text-xs font-bold text-forest-700 hover:text-forest-800 underline uppercase tracking-wider"
                     >
@@ -254,6 +277,7 @@ export function ExploreSection({ storage }: ExploreSectionProps) {
             </span>
             <div className="flex bg-forest-50 p-1 rounded-xl border border-forest-100">
               <button 
+                type="button"
                 onClick={() => setSortBy('alpha')}
                 className={cn(
                   "px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2",
@@ -265,6 +289,7 @@ export function ExploreSection({ storage }: ExploreSectionProps) {
                 A-Z
               </button>
               <button 
+                type="button"
                 onClick={() => {
                   setSortBy('nearest');
                   if (!userLocation) {
@@ -292,6 +317,7 @@ export function ExploreSection({ storage }: ExploreSectionProps) {
               <MapPin size={16} className="text-amber-500 shrink-0" />
               <p className="flex-1">{locationError}</p>
               <button 
+                type="button"
                 onClick={requestLocation}
                 className="px-3 py-1 bg-white border border-amber-200 rounded-lg font-bold hover:bg-amber-100 transition-colors shrink-0"
               >
@@ -303,6 +329,7 @@ export function ExploreSection({ storage }: ExploreSectionProps) {
           <div className="space-y-4 overflow-y-auto pr-2 max-h-[calc(100vh-320px)] lg:max-h-[calc(85vh-100px)]">
             {filteredParks.map(park => (
               <button
+                type="button"
                 key={park.id}
                 onClick={() => {
                   setSelectedPark(park);
@@ -359,6 +386,9 @@ export function ExploreSection({ storage }: ExploreSectionProps) {
           <motion.div 
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="park-details-title"
             className="bg-white rounded-3xl overflow-hidden max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl"
           >
             <div className="h-64 md:h-80 relative">
@@ -377,6 +407,9 @@ export function ExploreSection({ storage }: ExploreSectionProps) {
               )}
 
               <button 
+                ref={closeDetailButtonRef}
+                type="button"
+                aria-label="Close park details"
                 onClick={() => setSelectedPark(null)}
                 className="absolute top-4 right-4 p-2 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/40 transition-colors"
               >
@@ -384,7 +417,7 @@ export function ExploreSection({ storage }: ExploreSectionProps) {
               </button>
               <div className="absolute bottom-6 left-8">
                 <span className="text-white/80 text-xs font-bold uppercase tracking-[0.2em]">{selectedPark.region}</span>
-                <h3 className="text-3xl font-serif text-white mt-1">{selectedPark.name}</h3>
+                <h3 id="park-details-title" className="text-3xl font-serif text-white mt-1">{selectedPark.name}</h3>
               </div>
             </div>
             
@@ -422,6 +455,7 @@ export function ExploreSection({ storage }: ExploreSectionProps) {
                   
                   <div className="space-y-2">
                     <button 
+                      type="button"
                       onClick={() => {
                         storage.addVisit(selectedPark.id);
                       }}
@@ -439,6 +473,7 @@ export function ExploreSection({ storage }: ExploreSectionProps) {
 
                     {!storage.visits.includes(selectedPark.id) && (
                       <button 
+                        type="button"
                         onClick={async () => {
                           try {
                             const position = await resolveCurrentPosition();

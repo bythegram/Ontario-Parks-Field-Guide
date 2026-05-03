@@ -38,6 +38,22 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-serif;
   }
+
+  :where(button, [role="button"], a[href], summary, [tabindex]:not([tabindex="-1"])) {
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-forest-400 focus-visible:ring-offset-2 focus-visible:ring-offset-earth-50;
+  }
+
+  button:not(:disabled),
+  [role="button"],
+  a[href],
+  summary {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
 }
 
 /* Custom scrollbar for a naturalist feel */
