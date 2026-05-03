@@ -36,36 +36,80 @@ export function ExploreSection({ storage }: ExploreSectionProps) {
   const [sortBy, setSortBy] = useState<'alpha' | 'nearest'>('alpha');
   const [locationError, setLocationError] = useState<string | null>(null);
 
-  const requestLocation = () => {
-    if (navigator.geolocation) {
-      setIsLocating(true);
-      setLocationError(null);
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          });
-          setIsLocating(false);
-        },
-        (error) => {
-          console.warn("Geolocation denied or failed:", error);
-          setIsLocating(false);
-          if (error.code === error.PERMISSION_DENIED) {
-            setLocationError("Location access denied. Please enable it in your browser settings to sort by distance.");
-          } else {
-            setLocationError("Could not determine location. Please try again.");
-          }
-        },
-        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-      );
-    } else {
-      setLocationError("Geolocation is not supported by your browser.");
+  const getCurrentPosition = (options: PositionOptions) =>
+    new Promise<GeolocationPosition>((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, options);
+    });
+
+  const resolveCurrentPosition = async () => {
+    if (!navigator.geolocation) {
+      throw new Error('Geolocation is not supported by your browser.');
+    }
+
+    const isLocalDevHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (!window.isSecureContext && !isLocalDevHost) {
+      throw new Error('Location requires a secure origin (HTTPS) or localhost.');
+    }
+
+    const attempts: PositionOptions[] = [
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 },
+      { enableHighAccuracy: false, timeout: 12000, maximumAge: 10 * 60 * 1000 },
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: Infinity }
+    ];
+
+    let lastError: GeolocationPositionError | null = null;
+    for (const attempt of attempts) {
+      try {
+        return await getCurrentPosition(attempt);
+      } catch (error) {
+        lastError = error as GeolocationPositionError;
+      }
+    }
+
+    throw lastError ?? new Error('Could not determine location.');
+  };
+
+  const toLocationErrorMessage = (error: unknown) => {
+    if (error instanceof GeolocationPositionError) {
+      if (error.code === error.PERMISSION_DENIED) {
+        return 'Location access denied. Please enable it in your browser settings to sort by distance.';
+      }
+      if (error.code === error.POSITION_UNAVAILABLE) {
+        return 'Position update unavailable. Try enabling Wi-Fi, disabling VPN, or moving to an open area, then retry.';
+      }
+      if (error.code === error.TIMEOUT) {
+        return 'Location request timed out. Please retry in a few seconds.';
+      }
+      return 'Could not determine location. Please try again.';
+    }
+
+    if (error instanceof Error) {
+      return error.message;
+    }
+
+    return 'Could not determine location. Please try again.';
+  };
+
+  const requestLocation = async () => {
+    setIsLocating(true);
+    setLocationError(null);
+
+    try {
+      const position = await resolveCurrentPosition();
+      setUserLocation({
+        lat: position.coords.latitude,
+        lng: position.coords.longitude
+      });
+    } catch (error) {
+      console.warn('Geolocation denied or failed:', error);
+      setLocationError(toLocationErrorMessage(error));
+    } finally {
+      setIsLocating(false);
     }
   };
 
   useEffect(() => {
-    requestLocation();
+    void requestLocation();
   }, []);
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -176,7 +220,9 @@ export function ExploreSection({ storage }: ExploreSectionProps) {
               <button 
                 onClick={() => {
                   setSortBy('nearest');
-                  if (!userLocation) requestLocation();
+                  if (!userLocation) {
+                    void requestLocation();
+                  }
                 }}
                 className={cn(
                   "px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2",
@@ -349,12 +395,8 @@ export function ExploreSection({ storage }: ExploreSectionProps) {
                     {!storage.visits.includes(selectedPark.id) && (
                       <button 
                         onClick={async () => {
-                          if (!navigator.geolocation) {
-                            alert("Geolocation is not supported by your browser");
-                            return;
-                          }
-                          
-                          navigator.geolocation.getCurrentPosition((position) => {
+                          try {
+                            const position = await resolveCurrentPosition();
                             const userLat = position.coords.latitude;
                             const userLng = position.coords.longitude;
                             
@@ -374,9 +416,9 @@ export function ExploreSection({ storage }: ExploreSectionProps) {
                             } else {
                               alert(`Too far! You are approximately ${Math.round(distance)}km away from this park. Check-in requires being within 5km.`);
                             }
-                          }, (error) => {
-                            alert("Unable to retrieve your location. Please ensure GPS is enabled.");
-                          });
+                          } catch (error) {
+                            alert(toLocationErrorMessage(error));
+                          }
                         }}
                         className="w-full py-3 rounded-xl font-bold text-xs bg-white text-forest-600 border border-forest-200 hover:bg-forest-50 transition-all flex items-center justify-center gap-2"
                       >
