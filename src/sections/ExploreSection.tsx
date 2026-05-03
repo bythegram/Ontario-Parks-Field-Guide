@@ -300,7 +300,7 @@ export function ExploreSection({ storage }: ExploreSectionProps) {
             </motion.div>
           )}
 
-          <div className="space-y-4 overflow-y-auto pr-2 max-h-[calc(100vh-320px)] lg:max-h-[calc(75vh-100px)]">
+          <div className="space-y-4 overflow-y-auto pr-2 max-h-[calc(100vh-320px)] lg:max-h-[calc(85vh-100px)]">
             {filteredParks.map(park => (
               <button
                 key={park.id}
@@ -369,8 +369,6 @@ export function ExploreSection({ storage }: ExploreSectionProps) {
               {selectedPark.sticker && (
                 <div className="absolute top-4 left-4 z-20">
                   <motion.div 
-                    initial={{ rotate: -15, scale: 0.8 }}
-                    animate={{ rotate: 10, scale: 1 }}
                     className="w-20 h-20 md:w-28 md:h-28 rounded-full bg-white p-1 shadow-2xl border-4 border-white/50 overflow-hidden"
                   >
                     <img src={selectedPark.sticker} alt="Park Crest" className="w-full h-full object-contain" />
