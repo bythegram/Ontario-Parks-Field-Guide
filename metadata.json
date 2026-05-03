@@ -1,0 +1,13 @@
+{
+  "name": "Wild Ontario",
+  "description": "An interactive provincial park field guide featuring local lore, animal life, and journaling. Gamified with Strava integration and badges.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "Search",
+    "Maps",
+    "OAuth",
+    "Local Storage"
+  ]
+}
