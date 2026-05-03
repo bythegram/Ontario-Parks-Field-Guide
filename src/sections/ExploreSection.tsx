@@ -36,6 +36,14 @@ export function ExploreSection({ storage }: ExploreSectionProps) {
   const [sortBy, setSortBy] = useState<'alpha' | 'nearest'>('alpha');
   const [locationError, setLocationError] = useState<string | null>(null);
 
+  const getErrorCode = (error: unknown): number | null => {
+    if (!error || typeof error !== 'object') {
+      return null;
+    }
+    const code = (error as { code?: unknown }).code;
+    return typeof code === 'number' ? code : null;
+  };
+
   const getCurrentPosition = (options: PositionOptions) =>
     new Promise<GeolocationPosition>((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(resolve, reject, options);
@@ -69,18 +77,48 @@ export function ExploreSection({ storage }: ExploreSectionProps) {
     throw lastError ?? new Error('Could not determine location.');
   };
 
+  const resolveApproximatePosition = async () => {
+    const providers = [
+      {
+        url: 'https://ipapi.co/json/',
+        parse: (data: any) => ({ lat: Number(data?.latitude), lng: Number(data?.longitude) })
+      },
+      {
+        url: 'https://ipwho.is/',
+        parse: (data: any) => ({ lat: Number(data?.latitude), lng: Number(data?.longitude) })
+      }
+    ];
+
+    for (const provider of providers) {
+      try {
+        const response = await fetch(provider.url);
+        if (!response.ok) {
+          continue;
+        }
+
+        const data = await response.json();
+        const coords = provider.parse(data);
+        if (Number.isFinite(coords.lat) && Number.isFinite(coords.lng)) {
+          return coords;
+        }
+      } catch {
+        // Ignore and try next provider.
+      }
+    }
+
+    throw new Error('Could not determine approximate location.');
+  };
+
   const toLocationErrorMessage = (error: unknown) => {
-    if (error instanceof GeolocationPositionError) {
-      if (error.code === error.PERMISSION_DENIED) {
-        return 'Location access denied. Please enable it in your browser settings to sort by distance.';
-      }
-      if (error.code === error.POSITION_UNAVAILABLE) {
-        return 'Position update unavailable. Try enabling Wi-Fi, disabling VPN, or moving to an open area, then retry.';
-      }
-      if (error.code === error.TIMEOUT) {
-        return 'Location request timed out. Please retry in a few seconds.';
-      }
-      return 'Could not determine location. Please try again.';
+    const code = getErrorCode(error);
+    if (code === 1) {
+      return 'Location access denied. Please enable it in your browser settings to sort by distance.';
+    }
+    if (code === 2) {
+      return 'Position update unavailable. Try enabling Wi-Fi, disabling VPN, or moving to an open area, then retry.';
+    }
+    if (code === 3) {
+      return 'Location request timed out. Please retry in a few seconds.';
     }
 
     if (error instanceof Error) {
@@ -102,15 +140,24 @@ export function ExploreSection({ storage }: ExploreSectionProps) {
       });
     } catch (error) {
       console.warn('Geolocation denied or failed:', error);
+      const code = getErrorCode(error);
+
+      if (code !== 1) {
+        try {
+          const approximate = await resolveApproximatePosition();
+          setUserLocation(approximate);
+          setLocationError('Using approximate location from your network. Distances may be less precise.');
+          return;
+        } catch (fallbackError) {
+          console.warn('Approximate location fallback failed:', fallbackError);
+        }
+      }
+
       setLocationError(toLocationErrorMessage(error));
     } finally {
       setIsLocating(false);
     }
   };
-
-  useEffect(() => {
-    void requestLocation();
-  }, []);
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     const R = 6371; // km
