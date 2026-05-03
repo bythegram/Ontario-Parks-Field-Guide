@@ -38,6 +38,6 @@ export interface Achievement {
   title: string;
   description: string;
   icon: string;
-  requirementType: 'visit_count' | 'species_log' | 'strava_connected';
+  requirementType: 'visit_count' | 'species_log';
   requirementValue: number;
 }

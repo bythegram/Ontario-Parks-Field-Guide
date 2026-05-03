@@ -13,10 +13,6 @@ export function useLocalStorage() {
     return saved ? JSON.parse(saved) : [];
   });
 
-  const [stravaConnected, setStravaConnected] = useState<boolean>(() => {
-    return localStorage.getItem('wild_ontario_strava') !== null;
-  });
-
   useEffect(() => {
     localStorage.setItem('wild_ontario_journal', JSON.stringify(journal));
   }, [journal]);
@@ -49,9 +45,6 @@ export function useLocalStorage() {
         const uniqueSpecies = new Set(journal.flatMap(e => e.speciesIds));
         return uniqueSpecies.size >= badge.requirementValue;
       }
-      if (badge.requirementType === 'strava_connected') {
-        return stravaConnected;
-      }
       return false;
     });
   };
@@ -59,8 +52,6 @@ export function useLocalStorage() {
   return {
     journal,
     visits,
-    stravaConnected,
-    setStravaConnected,
     addJournalEntry,
     addVisit,
     getBadges,

@@ -77,12 +77,8 @@ export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
                 "Take only pictures, leave only footprints."
               </p>
               <a 
-                href="#" 
+                href="https://github.com/bythegram/Ontario-Parks-Field-Guide" 
                 className="text-[10px] font-bold uppercase underline text-forest-400 hover:text-white transition-colors"
-                onClick={(e) => {
-                  e.preventDefault();
-                  alert("This project is open-source! Check the code to see how it works.");
-                }}
               >
                 Project Repository
               </a>

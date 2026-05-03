@@ -1,13 +1,13 @@
 # Ontario Parks Field Guide
 
-An interactive field guide to Ontario's provincial parks. Explore parks on a live map, log nature journal entries, track species sightings, earn achievement badges, and optionally connect your Strava account to sync outdoor activities.
+An interactive field guide to Ontario's provincial parks. Explore parks on a live map, log nature journal entries, track species sightings, and earn achievement badges.
 
 ## Features
 
 - **Explore** — Interactive Leaflet map of Ontario provincial parks with search, geolocation, and nearest-park sorting
 - **Field Guide** — Searchable catalog of flora and fauna native to Ontario parks
 - **Journal** — Personal nature journal with park and species tagging
-- **Achievements** — Stats dashboard, badge system, and optional Strava activity sync
+- **Achievements** — Stats dashboard and badge system
 
 ## Tech Stack
 
@@ -15,7 +15,6 @@ An interactive field guide to Ontario's provincial parks. Explore parks on a liv
 - Tailwind CSS v4
 - Leaflet / react-leaflet
 - Framer Motion
-- Express backend (Strava OAuth)
 - Local storage for persistence
 
 ## Run Locally
@@ -34,11 +33,7 @@ An interactive field guide to Ontario's provincial parks. Explore parks on a liv
 
    | Variable | Description |
    |---|---|
-   | `APP_URL` | The URL where the app is hosted (e.g. `http://localhost:3000`) |
-   | `STRAVA_CLIENT_ID` | From [strava.com/settings/api](https://www.strava.com/settings/api) |
-   | `STRAVA_CLIENT_SECRET` | From [strava.com/settings/api](https://www.strava.com/settings/api) |
-
-   Strava credentials are only needed if you want to use the Strava activity sync feature. The app works fully without them.
+   | `GEMINI_API_KEY` | API key used by the in-app AI features |
 
 3. Start the dev server:
    ```

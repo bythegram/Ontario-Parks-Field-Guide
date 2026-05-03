@@ -1255,13 +1255,5 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: 'Flower2',
     requirementType: 'species_log',
     requirementValue: 3
-  },
-  {
-    id: 'athlete',
-    title: 'Park Athlete',
-    description: 'Connect your Strava account.',
-    icon: 'Activity',
-    requirementType: 'strava_connected',
-    requirementValue: 1
   }
 ];

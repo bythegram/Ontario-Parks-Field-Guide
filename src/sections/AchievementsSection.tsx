@@ -1,83 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { useLocalStorage } from '../hooks/useLocalStorage';
+import React from 'react';
 import { Award, Zap, Activity, CheckCircle2, TrendingUp, Trophy, Map as MapIcon, Scroll, Info } from 'lucide-react';
 import { motion } from 'motion/react';
-import { ACHIEVEMENTS, PARKS } from '../data/constants';
+import { ACHIEVEMENTS } from '../data/constants';
 import { cn } from '../lib/utils';
 
 export function AchievementsSection({ storage }: { storage: any }) {
   const earnedBadges = storage.getBadges();
-  const [stravaLoading, setStravaLoading] = useState(false);
 
   const stats = [
     { label: 'Parks Visited', value: storage.visits.length, icon: MapIcon, color: 'text-forest-600', bg: 'bg-forest-100' },
     { label: 'Journal Logs', value: storage.journal.length, icon: Scroll, color: 'text-amber-600', bg: 'bg-amber-100' },
     { label: 'Species Spotted', value: new Set(storage.journal.flatMap((e: any) => e.speciesIds)).size, icon: Activity, color: 'text-rose-600', bg: 'bg-rose-100' },
   ];
-
-  const handleStravaConnect = async () => {
-    setStravaLoading(true);
-    try {
-      const resp = await fetch('/api/auth/strava/url');
-      const { url } = await resp.json();
-      
-      const authWindow = window.open(url, 'Strava Auth', 'width=600,height=700');
-      
-      const handleMessage = (event: MessageEvent) => {
-        if (event.data?.type === 'STRAVA_AUTH_SUCCESS') {
-          storage.setStravaConnected(true);
-          localStorage.setItem('wild_ontario_strava', JSON.stringify(event.data.payload));
-          setStravaLoading(false);
-          window.removeEventListener('message', handleMessage);
-        }
-      };
-      
-      window.addEventListener('message', handleMessage);
-    } catch (err) {
-      console.error(err);
-      setStravaLoading(false);
-    }
-  };
-
-  const syncStravaActivities = async () => {
-    const stravaData = localStorage.getItem('wild_ontario_strava');
-    if (!stravaData) return;
-    
-    const { access_token } = JSON.parse(stravaData);
-    setStravaLoading(true);
-    
-    try {
-      const resp = await fetch(`https://www.strava.com/api/v3/athlete/activities?per_page=10`, {
-        headers: { 'Authorization': `Bearer ${access_token}` }
-      });
-      
-      if (!resp.ok) throw new Error('Failed to fetch activities');
-      
-      const activities = await resp.json();
-      
-      // Look for park names in activity titles
-      activities.forEach((activity: any) => {
-        const foundPark = PARKS.find(p => 
-          activity.name.toLowerCase().includes(p.name.toLowerCase().replace(' Provincial Park', '').toLowerCase())
-        );
-        if (foundPark) {
-          storage.addVisit(foundPark.id);
-        }
-      });
-      
-      alert('Synced! Checked your last 10 activities for park visits.');
-    } catch (err) {
-      console.error(err);
-      alert('Failed to sync. Your token might have expired.');
-    } finally {
-      setStravaLoading(false);
-    }
-  };
-
-  const handleDemoConnect = () => {
-    storage.setStravaConnected(true);
-    alert("Demo Mode: Strava account 'simulated'. Badge unlocked!");
-  };
 
   return (
     <div className="space-y-10 max-w-5xl mx-auto">
@@ -87,45 +21,9 @@ export function AchievementsSection({ storage }: { storage: any }) {
           <p className="text-forest-600 mt-2">Track your progress and earn badges for exploring Ontario.</p>
         </div>
 
-        <div className="flex items-center gap-4">
-          {storage.stravaConnected ? (
-            <div className="flex flex-col md:flex-row gap-3">
-              <button 
-                onClick={syncStravaActivities}
-                disabled={stravaLoading}
-                className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-earth-200 text-xs font-bold text-forest-600 hover:bg-earth-50 transition-all disabled:opacity-50"
-              >
-                {stravaLoading ? 'Syncing...' : 'Sync Activities'}
-                <TrendingUp size={14} />
-              </button>
-              <div className="flex items-center gap-3 bg-white px-5 py-2.5 rounded-2xl border border-forest-200 shadow-sm">
-                <div className="w-8 h-8 bg-[#FC6100] rounded-lg flex items-center justify-center text-white">
-                  <Activity size={20} />
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-forest-400 uppercase tracking-widest">Strava Sync</p>
-                  <p className="text-sm font-bold text-forest-900">Connected</p>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-col md:flex-row gap-3">
-               <button 
-                onClick={handleDemoConnect}
-                className="flex items-center gap-3 bg-forest-100 text-forest-700 px-6 py-3 rounded-2xl font-bold hover:bg-forest-200 transition-all text-xs"
-              >
-                Demo Simulate
-              </button>
-              <button 
-                onClick={handleStravaConnect}
-                disabled={stravaLoading}
-                className="flex items-center gap-3 bg-[#FC6100] text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-orange-500/20 hover:brightness-110 active:scale-95 transition-all disabled:opacity-50"
-              >
-                {stravaLoading ? 'Connecting...' : 'Connect Strava'}
-                {!stravaLoading && <Activity size={18} />}
-              </button>
-            </div>
-          )}
+        <div className="bg-white px-5 py-3 rounded-2xl border border-earth-200 shadow-sm">
+          <p className="text-[10px] font-bold text-forest-400 uppercase tracking-widest">Progress</p>
+          <p className="text-sm font-bold text-forest-900">{earnedBadges.length} / {ACHIEVEMENTS.length} badges earned</p>
         </div>
       </header>
 

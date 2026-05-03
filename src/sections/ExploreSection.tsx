@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { PARKS } from '../data/constants';
-import { Search, MapPin, Wind, Info, X, Scroll, Activity, CheckCircle2 } from 'lucide-react';
+import { Search, MapPin, Wind, Info, X, Scroll, CheckCircle2 } from 'lucide-react';
 import { Park } from '../types';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
@@ -478,18 +478,6 @@ export function ExploreSection({ storage }: ExploreSectionProps) {
                       ? 'Memory preserved in your journal' 
                       : 'Earn badges for visiting parks'}
                   </p>
-                </div>
-
-                <div className="bg-forest-900 rounded-2xl p-5 text-white">
-                  <h5 className="font-bold flex items-center gap-2 text-sm mb-2">
-                    <Activity size={16} className="text-forest-400" /> Strava Sync
-                  </h5>
-                  <p className="text-xs text-forest-300 leading-relaxed mb-4">
-                    Sync your hiking activities to automatically verify your park visits.
-                  </p>
-                  <button className="w-full py-2 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-bold transition-all">
-                    Link Activity
-                  </button>
                 </div>
               </div>
             </div>
