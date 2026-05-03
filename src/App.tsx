@@ -27,7 +27,7 @@ export default function App() {
     <div className="flex min-h-screen bg-earth-50 text-forest-950">
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
       
-      <main className="flex-1 md:ml-64 p-4 md:p-8">
+      <main className="flex-1 md:ml-64 pt-16 px-4 pb-4 md:p-8">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
