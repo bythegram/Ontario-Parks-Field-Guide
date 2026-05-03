@@ -236,7 +236,7 @@ export function ExploreSection({ storage }: ExploreSectionProps) {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-[700px] lg:min-h-[75vh]">
         {/* Map View */}
-        <div className="lg:col-span-2 rounded-2xl overflow-hidden shadow-xl border border-earth-200 relative z-10">
+        <div className="lg:col-span-2 rounded-2xl overflow-hidden shadow-xl border border-earth-200 relative z-10 h-[350px] md:h-[450px] lg:h-auto">
           <MapContainer center={mapCenter} zoom={6} scrollWheelZoom={true} className="h-full w-full">
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
